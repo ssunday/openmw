@@ -63,10 +63,10 @@ if [[ -z $KEEP ]]; then
     rm -fr build
 fi
 
+DEPENDENCIES_ROOT_PATH="$(pwd)/deps/openmw-deps"
+
 mkdir -p build
 cd build
-
-DEPENDENCIES_ROOT_PATH="/tmp/openmw-deps"
 
 if [[ "${MACOS_AMD64}" ]]; then
     QT_PATH=$(arch -x86_64 /bin/bash -c "qmake -v | sed -rn -e 's/Using Qt version [.0-9]+ in //p'")
