@@ -49,33 +49,19 @@ jobs:
     - name: Run OpenMW-CS tests
       run: ./openmw-cs-tests
 
-    # - name: Install
-    #   shell: bash
-    #   run: cmake --install .
-
-    # - name: Create Artifact
-    #   shell: bash
-    #   working-directory: install
-    #   run: |
-    #     ls -laR
-    #     7z a ../build_artifact.7z .
-
-    # - name: Upload Artifact
-    #   uses: actions/upload-artifact@v1
-    #   with:
-    #     path: ./build_artifact.7z
-    #     name: build_artifact.7z
-
   MacOS:
     strategy:
       fail-fast: true
       matrix:
         args:
           - image: macos-26
-          - image: macos-26-intel
+            amd64: false
+          - image: macos-26
+            amd64: true
     uses: ./.github/workflows/macos.yml
     with:
       image: ${{ matrix.args.image }}
+      amd64: ${{ matrix.args.amd64 }}
 
   Windows:
     strategy:

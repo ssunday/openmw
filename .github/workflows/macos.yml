@@ -10,22 +10,22 @@ on:
         description: MacOS Runner image
         required: true
         type: string
+      amd64:
+        required: true
+        type: boolean
 
 jobs:
   MacOS:
-    name: ${{ inputs.image }}
+    name: ${{ inputs.image }} ${{ inputs.amd64 && 'amd64' || 'arm64' }}
     runs-on: ${{ inputs.image }}
+    env:
+      DMG_IDENTIFIER: ${{ inputs.amd64 && 'x86_64' || 'arm64' }}
     steps:
     - uses: actions/checkout@v6
     - run: echo "CMAKE_BUILD_TYPE=${{ inputs.build-type }}" >> $GITHUB_ENV
 
     - run: echo "MACOS_AMD64=true" >> $GITHUB_ENV
-      if: ${{ inputs.image == 'macos-26-intel' }}
-
-    - run: echo "DMG_IDENTIFIER=x86_64" >> $GITHUB_ENV
-      if: ${{ inputs.image == 'macos-26-intel' }}
-    - run: echo "DMG_IDENTIFIER=arm64" >> $GITHUB_ENV
-      if: ${{ inputs.image != 'macos-26-intel' }}
+      if: ${{ inputs.amd64 }}
 
     - name: Install Building Dependencies
       run: CI/before_install.macos.sh
