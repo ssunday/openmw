@@ -5,14 +5,14 @@ on:
       tags:
         - openmw-**
 
+env:
+  CMAKE_BUILD_TYPE: Release
+
 jobs:
   Windows:
     uses: ./.github/workflows/windows.yml
     with:
       image: "2022"
-      build-type: Release
-      package: true
-      release: true
     secrets: inherit
   MacOS:
     strategy:
@@ -24,4 +24,3 @@ jobs:
     uses: ./.github/workflows/macos.yml
     with:
       image: ${{ matrix.args.image }}
-      build-type: Release

@@ -1,0 +1,53 @@
+name: Reusable Linux workflow
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        description: Linux Runner image
+        required: true
+        type: string
+
+jobs:
+  Linux:
+    name: ${{ inputs.image }}
+    runs-on: ${{ inputs.image }}
+    container:
+      image: almalinux:9
+    env:
+      BUILD_AUTOCONF_SHA512: 3f71d459e2127ef2c98b37f11f5284f0c92318ad8d31c5b6034bed370adfe9f3d0f7a12f87e2efced06c11e2a159de4d4a292b751104e83daf11342f25ba9721
+      CI_OPENMW_USE_VCPKG: true
+      OPENMW_LOCAL_INSTALL: 1
+      OPENMW_CXX_FLAGS: "-Werror -Werror=implicit-fallthrough"
+      CC: gcc
+      CXX: g++
+    steps:
+      - uses: actions/checkout@v7
+      - run: echo "CUSTOM_CPACK_LABEL=$GITHUB_SHA" >> $GITHUB_ENV
+      - run: echo "CMAKE_BUILD_TYPE=${{ inputs.build_type }}" >> $GITHUB_ENV
+      - run: dnf install -y epel-release
+      - run: dnf install -y git binutils gcc-toolset-13 ccache cmake unzip pkg-config p7zip p7zip-plugins pipx mesa-libGL-devel libxkbcommon-devel mesa-libEGL-devel fontconfig
+      - run: ./CI/linux/before_install_for_vcpkg.sh
+      - name: Prime ccache
+        uses: hendrikmuhs/ccache-action@v1.2.22
+        with:
+          key: ${{ inputs.image }}
+          max-size: 1000M
+      - run: source /opt/rh/gcc-toolset-13/enable && ./CI/before_script.linux.sh -C
+      - name: Build OpenMW
+        run: source /opt/rh/gcc-toolset-13/enable && cmake --build ${{ github.workspace }}/build
+
+      - name: Store tar.xz
+        uses: actions/upload-artifact@v6
+        with:
+          name: openmw-generic-linux-tar-xz-${{ github.sha }}
+          path: |
+            ${{ github.workspace }}/build/OpenMW-*.tar.xz
+
+      - name: Create prerelease
+        if: ${{ inputs.build-type == 'Release' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ github.workspace }}/build/OpenMW-*.tar.xz
+          prerelease: true
+          draft: true

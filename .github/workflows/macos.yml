@@ -3,9 +3,6 @@ name: Reusable MacOS workflow
 on:
   workflow_call:
     inputs:
-      build-type:
-        default: RelWithDebInfo
-        type: string
       image:
         description: MacOS Runner image
         required: true
@@ -17,8 +14,6 @@ jobs:
     runs-on: ${{ inputs.image }}
     steps:
     - uses: actions/checkout@v6
-    - run: echo "CMAKE_BUILD_TYPE=${{ inputs.build-type }}" >> $GITHUB_ENV
-
     - run: echo "MACOS_AMD64=true" >> $GITHUB_ENV
       if: ${{ inputs.image == 'macos-26-intel' }}
 
@@ -33,7 +28,7 @@ jobs:
     - name: Prime ccache
       uses: hendrikmuhs/ccache-action@v1.2.22
       with:
-        key: ${{ inputs.image }}-${{ inputs.build-type }}
+        key: ${{ inputs.image }}-${{ env.CMAKE_BUILD_TYPE }}
         max-size: 1000M
 
     - name: Configure
@@ -49,7 +44,7 @@ jobs:
           ${{ github.workspace }}/build/OpenMW-*.dmg
 
     - name: Create prerelease
-      if: ${{ inputs.build-type == 'Release' }}
+      if: ${{ env.CMAKE_BUILD_TYPE == 'Release' }}
       uses: softprops/action-gh-release@v2
       with:
         files: ${{ github.workspace }}/build/OpenMW-*.dmg
